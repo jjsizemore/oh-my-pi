@@ -100,7 +100,7 @@ Hook events are strongly typed in `types.ts`.
 - `session_compact`
 - `session_before_tree` → can return `{ cancel?: boolean; summary?: { summary: string; details?: unknown } }`
 - `session_tree`
-- `session_shutdown`
+- `session_shutdown` carries the same `reason` as extensions (`quit` only for explicit interactive quits; otherwise `signal`, `fatal`, or `dispose`).
 
 ### Agent/context events
 

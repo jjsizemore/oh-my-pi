@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+
+- Fixed `session_shutdown` carrying no exit intent: it now reports `quit` only for explicit interactive quits (`/quit`, `/exit`, exit keybindings), `signal` for signal/process-exit teardown, `fatal` for crashes, and `dispose` for programmatic disposal.
 
 ## [18.4.4] - 2026-09-29
 

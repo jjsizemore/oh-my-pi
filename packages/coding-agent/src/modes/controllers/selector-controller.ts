@@ -1655,7 +1655,7 @@ export class SelectorController {
 				// Release the alt buffer before teardown: shutdown() awaits flush/save/
 				// dispose/drain before stop() leaves the alt screen.
 				done();
-				void this.ctx.shutdown();
+				void this.ctx.shutdown({ quit: true });
 			},
 			{
 				...selectorOptions,

@@ -351,7 +351,7 @@ Canonical event unions and payload types are in `types.ts`.
 - `session_before_branch` / `session_branch`
 - `session_before_compact` / `session.compacting` / `session_compact`
 - `session_before_tree` / `session_tree`
-- `session_shutdown`
+- `session_shutdown` carries `reason`: `quit` only for explicit interactive quits (`/quit`, `/exit`, exit keybindings); `signal` for signal/process-exit teardown; `fatal` for crashes; `dispose` for programmatic disposal. Release resumable host references only on `quit`.
 
 Cancelable pre-events:
 

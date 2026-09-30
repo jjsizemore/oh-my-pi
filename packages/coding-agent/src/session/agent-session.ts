@@ -158,6 +158,7 @@ import type {
 } from "../extensibility/extensions";
 import { emitSessionShutdownEvent, TOP_LEVEL_AGENT } from "../extensibility/extensions";
 import { ManagedTimers } from "../extensibility/extensions/managed-timers";
+import type { SessionShutdownReason } from "../extensibility/shared-events";
 import { createExtensionModelQuery } from "../extensibility/extensions/model-api";
 import type { CompactOptions, ContextUsage } from "../extensibility/extensions/types";
 import type { CustomCommandContext } from "../extensibility/custom-commands/types";
@@ -498,6 +499,25 @@ const cfgWorkspacePromptInputs = combine({
 const PLAN_MODE_REMINDER_MAX = 3;
 const POST_PROMPT_DRAIN_TIMEOUT_MS = 5_000;
 const AGENT_START_POLICY_MAX_ATTEMPTS = 3;
+
+/** Map disposal options to the `session_shutdown` reason consumers observe. Only an explicit interactive quit intent yields `quit`; a postmortem signal maps to `signal`, a fatal exception/rejection to `fatal`, and every programmatic/test/subagent disposal stays `dispose`. First-dispose-wins idempotency is preserved by the `dispose()` memo. */
+function resolveSessionShutdownReason(options: AgentSessionDisposeOptions): SessionShutdownReason {
+	if (options.shutdownReason === "quit") return "quit";
+	const reason = options.reason;
+	if (reason === postmortem.Reason.UNCAUGHT_EXCEPTION || reason === postmortem.Reason.UNHANDLED_REJECTION) {
+		return "fatal";
+	}
+	if (
+		reason === postmortem.Reason.SIGINT ||
+		reason === postmortem.Reason.SIGTERM ||
+		reason === postmortem.Reason.SIGHUP ||
+		reason === postmortem.Reason.EXIT ||
+		reason === postmortem.Reason.PRE_EXIT
+	) {
+		return "signal";
+	}
+	return "dispose";
+}
 
 /** A failed preparation, not a provider failure: the ordinary input can still be restored. */
 class AgentStartPolicyChangedError extends Error {
@@ -5335,7 +5355,7 @@ export class AgentSession implements SettingsScope {
 		this.#cancelFatalRecoveryHint?.();
 		this.#cancelFatalRecoveryHint = undefined;
 		try {
-			await emitSessionShutdownEvent(this.#extensionRunner);
+			await emitSessionShutdownEvent(this.#extensionRunner, resolveSessionShutdownReason(options));
 		} catch (error) {
 			logger.warn("Failed to emit session_shutdown event", { error: String(error) });
 		}

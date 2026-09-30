@@ -38,7 +38,7 @@ import { MAIN_AGENT_ID } from "../../registry/agent-registry";
 import type { SessionManager } from "../../session/session-manager";
 import { addFileDeleteFallback, addFileWriteFallback } from "../../tools/file-write-fallback";
 import type { BranchHandler, NavigateTreeHandler, NewSessionHandler } from "../session-handler-types";
-import { accumulateToolCallResult, buildAggregatedToolCallResult } from "../shared-events";
+import { accumulateToolCallResult, buildAggregatedToolCallResult, type SessionShutdownReason } from "../shared-events";
 import { ManagedTimers } from "./managed-timers";
 import { createExtensionModelQuery } from "./model-api";
 import type { ComposerShapeDefinition } from "@oh-my-pi/pi-tui/overlays/composer-shape-registry";
@@ -428,12 +428,16 @@ export type ShutdownHandler = () => void;
  * cleanup run even when a handler fails so extension background work — and a
  * fallback bound to this session's context — cannot outlive its host.
  */
-export async function emitSessionShutdownEvent(extensionRunner: ExtensionRunner | undefined): Promise<boolean> {
+export async function emitSessionShutdownEvent(
+	extensionRunner: ExtensionRunner | undefined,
+	reason: SessionShutdownReason = "dispose",
+): Promise<boolean> {
 	if (!extensionRunner) return false;
 	try {
 		if (!extensionRunner.hasHandlers("session_shutdown")) return false;
 		await extensionRunner.emit({
 			type: "session_shutdown",
+			reason,
 		});
 		return true;
 	} finally {

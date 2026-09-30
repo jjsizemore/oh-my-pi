@@ -37,6 +37,7 @@ import type { CustomTool } from "../extensibility/custom-tools/types";
 import type { ExtensionRunner, PreparedExtension } from "../extensibility/extensions";
 import type { CacheWarmer } from "./cache-warmer";
 import type { ContextUsage } from "../extensibility/extensions/types";
+import type { SessionShutdownReason } from "../extensibility/shared-events";
 import type { SkillDescriptionCatalog } from "../extensibility/skill-descriptions";
 import type { Skill, SkillWarning } from "../extensibility/skills";
 import type { FileSlashCommand } from "../extensibility/slash-commands";
@@ -64,9 +65,16 @@ export interface AgentSessionDisposeOptions {
 	 * Postmortem reason that triggered this dispose (signal/fatal teardown
 	 * paths). When set, the persisted `session_exit` diagnostic records it
 	 * instead of the generic `"dispose"` used for normal programmatic disposal
-	 * (`/quit`, test teardown, subagent completion).
+	 * (test teardown, subagent completion).
 	 */
 	reason?: postmortem.Reason;
+	/**
+	 * Explicit interactive quit intent. Set only by the interactive
+	 * `/quit`/`/exit`/exit-keybinding path; `session_shutdown` emits `quit`
+	 * only when this is `"quit"`. All other paths leave this unset: postmortem
+	 * `reason` maps to `signal`/`fatal`, programmatic disposal stays `dispose`.
+	 */
+	shutdownReason?: SessionShutdownReason;
 }
 
 /** Listener notified when command metadata changes. */

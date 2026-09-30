@@ -103,7 +103,7 @@ describe("issue #2600 - session_shutdown handler timeout", () => {
 			testSetSessionShutdownHandlerTimeoutMs(100);
 
 			const startedAt = performance.now();
-			await runner.emit({ type: "session_shutdown" });
+			await runner.emit({ type: "session_shutdown", reason: "dispose" });
 			const elapsedMs = performance.now() - startedAt;
 
 			// Multiple hung shutdown handlers must share the cap. Sequential
@@ -139,7 +139,7 @@ describe("issue #2600 - session_shutdown handler timeout", () => {
 			testSetSessionShutdownHandlerTimeoutMs(50);
 
 			const startedAt = performance.now();
-			await runner.emit({ type: "session_shutdown" });
+			await runner.emit({ type: "session_shutdown", reason: "dispose" });
 			const elapsedMs = performance.now() - startedAt;
 
 			expect(elapsedMs).toBeLessThan(500);

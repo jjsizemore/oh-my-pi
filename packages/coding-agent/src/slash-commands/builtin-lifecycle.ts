@@ -58,7 +58,7 @@ export const shutdownHandlerTui = (
 	runtime: TuiSlashCommandRuntime,
 ): SlashCommandResult => {
 	clearSubmittedText(runtime);
-	void runtime.ctx.shutdown();
+	void runtime.ctx.shutdown({ quit: true });
 	return commandConsumed();
 };
 

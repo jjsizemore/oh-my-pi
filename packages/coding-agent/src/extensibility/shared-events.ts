@@ -90,9 +90,13 @@ export interface SessionCompactEvent {
 	fromExtension: boolean;
 }
 
-/** Fired on process exit (SIGINT/SIGTERM) */
+/** Why a session is shutting down. Only an explicit interactive quit releases resumable host references. */
+export type SessionShutdownReason = "quit" | "signal" | "fatal" | "dispose";
+
+/** Fired on session teardown. `reason` is always present: `quit` only for explicit interactive exits (`/quit`, `/exit`, equivalent exit keybindings); `signal` for SIGINT/SIGTERM/SIGHUP/process-exit teardown; `fatal` for uncaught exceptions/rejections; `dispose` for programmatic/test/subagent disposal. */
 export interface SessionShutdownEvent {
 	type: "session_shutdown";
+	reason: SessionShutdownReason;
 }
 
 /** Fired when a main-agent turn is about to settle; handlers may request one continuation turn. */

@@ -1893,11 +1893,12 @@ export class InteractiveMode implements InteractiveModeContext {
 			getDraftText: () => this.#inputController.getDraftText(),
 			beginDispose: () => this.session.beginDispose(),
 			saveDraft: text => this.sessionManager.saveDraft(text),
-			disposeSession: async reason => {
+			disposeSession: async (reason, shutdownReason) => {
 				await this.#btwController.dispose();
 				await this.session.dispose({
 					mnemopiConsolidateTimeoutMs: SHUTDOWN_CONSOLIDATE_BUDGET_MS,
 					reason,
+					shutdownReason,
 				});
 			},
 		});
@@ -6504,7 +6505,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		this.isInitialized = false;
 	}
 
-	async shutdown(): Promise<void> {
+	async shutdown(options: { quit?: boolean } = {}): Promise<void> {
 		if (this.#isShuttingDown) return;
 		// The previous graceful teardown failed AT the memoized session.dispose()
 		// (the session is already disposing), so it re-rejects identically forever
@@ -6524,7 +6525,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		}
 		this.#isShuttingDown = true;
 		try {
-			await this.#teardown();
+			await this.#teardown(options.quit === true ? "quit" : undefined);
 		} catch (error) {
 			this.#handleTeardownError("close", error);
 			return;
@@ -6614,8 +6615,8 @@ export class InteractiveMode implements InteractiveModeContext {
 		return sessionId && sessionFile && this.sessionManager.isSessionOnDisk() ? sessionId : undefined;
 	}
 
-	/** Shared `shutdown()`/`restart()` teardown: dispose the session and hand the terminal back. */
-	async #teardown(): Promise<void> {
+	/** Shared `shutdown()`/`restart()` teardown: dispose the session and hand the terminal back. `quitIntent` is `"quit"` only for the explicit interactive quit path; `restart()` leaves it unset so its relaunch never releases resumable host references. */
+	async #teardown(quitIntent?: "quit"): Promise<void> {
 		// An in-flight loop condition (or a deferred auto-submit timer) must not
 		// outlive session disposal: an unaborted `sleep 30`-style condition can
 		// resolve mid-teardown and drive `#passesLoopCondition` into invoking the
@@ -6648,13 +6649,15 @@ export class InteractiveMode implements InteractiveModeContext {
 			// so a signal that arrives mid-shutdown cannot fire a second dispose.
 			// The teardown is a promise-memoized singleton; whichever path calls it
 			// first runs the work, the other awaits the same settled promise.
-			// The teardown is registered lazily in `init()` — a `/exit` reached
+			// Only the explicit interactive quit path passes `"quit"`. The
+			// teardown is registered lazily in `init()` — a `/exit` reached
 			// before `init()` completed falls back to a direct dispose.
 			if (this.#signalTeardown) {
-				await this.#signalTeardown();
+				await this.#signalTeardown(undefined, quitIntent);
 			} else {
 				await this.session.dispose({
 					mnemopiConsolidateTimeoutMs: SHUTDOWN_CONSOLIDATE_BUDGET_MS,
+					shutdownReason: quitIntent,
 				});
 			}
 		} finally {

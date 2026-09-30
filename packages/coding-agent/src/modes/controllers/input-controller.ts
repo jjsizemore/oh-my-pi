@@ -1510,7 +1510,7 @@ export class InputController {
 
 		const now = Date.now();
 		if (now - this.ctx.lastSigintTime < 500) {
-			void this.ctx.shutdown();
+			void this.ctx.shutdown({ quit: true });
 		} else {
 			this.ctx.clearEditor();
 			this.ctx.lastSigintTime = now;
@@ -1521,7 +1521,7 @@ export class InputController {
 		// Editor text (if any) is snapshotted at the start of shutdown() and
 		// persisted as a draft for the next resume. Empty text is also fine —
 		// shutdown clears any stale sidecar in that case.
-		void this.ctx.shutdown();
+		void this.ctx.shutdown({ quit: true });
 	}
 
 	handleCtrlZ(): void {
