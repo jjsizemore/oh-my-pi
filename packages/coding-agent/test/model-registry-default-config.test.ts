@@ -46,6 +46,7 @@ describe("ModelRegistry default custom models config", () => {
 			supportsLongPromptCacheRetention: false,
 			promptCacheMinimumTokens: 1024,
 			promptCacheMaximumCheckpoints: 4,
+			streamIdleTimeoutMs: 900_000,
 		});
 	});
 

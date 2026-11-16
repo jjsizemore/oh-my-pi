@@ -2399,6 +2399,20 @@ describe("AgentSession retry fallback", () => {
 				success: false,
 				attempt: 1,
 				finalError: refusalMessage,
+				retryErrors: [
+					{
+						entryId: expect.any(String),
+						persistenceKey: expect.any(String),
+						note: "switched model; retried",
+						retryRecovery: {
+							attempt: 1,
+							kind: "auto-retry",
+							note: "switched model; retried",
+							recovery: "model",
+							status: "superseded",
+						},
+					},
+				],
 			},
 		]);
 	});
@@ -2611,10 +2625,11 @@ describe("AgentSession retry fallback", () => {
 		expect(retryStartEvents[0]).toMatchObject({
 			attempt: 1,
 			maxAttempts: 1,
-			delayMs: 200,
+			// The rate-limit floor wins over the shorter retry-after hint.
+			delayMs: 30_000,
 			errorMessage: "rate limit exceeded retry-after-ms=200",
 		});
-		expect(waitSpy).toHaveBeenCalledWith(200, { signal: expect.any(AbortSignal) });
+		expect(waitSpy).toHaveBeenCalledWith(30_000, { signal: expect.any(AbortSignal) });
 		expect(retryEndEvents).toHaveLength(1);
 		expect(retryEndEvents[0]).toMatchObject({ success: true, attempt: 1 });
 		expect(fallbackAppliedEvents).toHaveLength(0);

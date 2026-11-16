@@ -96,6 +96,8 @@ describe("issue #6879 — tool output appears twice after a superseded turn", ()
 			sessionManager: SessionManager.create(tempDir.path(), tempDir.path()),
 			settings: Settings.isolated(),
 			modelRegistry,
+			// Streamed bash/read frames represent built-ins, not same-named extension tools.
+			builtInToolNames: ["bash", "read"],
 		});
 		mode = new InteractiveMode(session, "test");
 		mode.ui.requestRender = vi.fn();
