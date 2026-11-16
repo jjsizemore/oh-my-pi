@@ -4,3 +4,5 @@
 self-hosted-runner:
    labels:
       - omp-kata
+      - ubicloud-standard-4-ubuntu-2204
+      - ubicloud-standard-8-arm
