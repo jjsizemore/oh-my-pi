@@ -23,7 +23,8 @@ export function requireNativeVersion(exports: readonly string[], expectedVersion
 
 if (import.meta.main) {
 	const addonPath = process.argv[2];
-	if (!addonPath) throw new Error("Usage: bun scripts/install-tests/native-version.ts <addon-path> [expected-version]");
+	if (!addonPath)
+		throw new Error("Usage: bun scripts/install-tests/native-version.ts <addon-path> [expected-version]");
 	const require = createRequire(import.meta.url);
 	const bindings = require(addonPath) as Record<string, unknown>;
 	let version: string;
