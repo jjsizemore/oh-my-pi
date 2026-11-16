@@ -127,6 +127,7 @@ interface ModelSnapshot {
 		supportsLongPromptCacheRetention: boolean;
 		promptCacheMinimumTokens: number;
 		promptCacheMaximumCheckpoints: number;
+		streamIdleTimeoutMs?: number;
 	};
 }
 
